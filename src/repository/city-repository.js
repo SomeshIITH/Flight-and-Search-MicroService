@@ -87,6 +87,23 @@ class cityRepository{
             throw error;
         }
     }
+
+    async getAllAirportsOfCity(cityid){
+        try{
+            //M1 by eager loading
+            // const city = await City.findByPk(cityid,{
+            //     include : ["airports"] // as we have defined alias as airports in city model while defining association
+            // })
+            // return city;
+            //M2 by magic metods
+            const city = await City.findByPk(cityid);
+            const airports = await city.getAirports(); // get + alias name of association
+            return airports;
+        }catch(error){
+            console.log("Something went wrong in city repository layer");
+            throw error;
+        }
+    }
 };
 
 module.exports = cityRepository;
