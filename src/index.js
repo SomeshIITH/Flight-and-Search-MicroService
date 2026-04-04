@@ -15,9 +15,9 @@ const SetupServer = async () => {
         console.log(PORT);
         // console.log(City);
         console.log(`Server is running on http://localhost:${PORT}`);
-        if(process.env.SYNC_DB){
-            db.sequelize.sync({alter : true});
-        }
+        // if(process.env.SYNC_DB){
+        //     db.sequelize.sync({alter : true});
+        // }
     })
 }
 
