@@ -17,7 +17,14 @@ module.exports = {
         allowNull: false
       },
       cityId: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        onDelete : "CASCADE",
+        references : {
+          model : "Cities",
+          key : "id",  // Cities table ka id column is referenced as cityId of Airports table
+          as : "cityId"
+        },
+        allowNull : false
       },
       createdAt: {
         allowNull: false,
