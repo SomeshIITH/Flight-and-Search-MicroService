@@ -1,4 +1,5 @@
 const {City} = require('./../models/index.js');
+const {Op} = require('sequelize'); //for operations like greater than, less than, like , strartswith etc
 
 class cityRepository{
 
@@ -35,10 +36,12 @@ class cityRepository{
 
     async getCityByFilter(filter){
         try{
-            if(filter.name){
+            if(filter.name){//find does not exist in sequelize
                 const city = await City.findAll({
                     where : {
-                        name : filter.name
+                        name : {
+                            [Op.startsWith] : filter.name  // for prefix matching , if user enter pray -> prayagraj will come
+                        }
                     }
                 })
                 return city;
