@@ -9,7 +9,7 @@ class cityRepository{
             return city;
         }catch(error){
             console.log("Something went wrong in city repository layer");
-            throw {error};
+            throw error;
         }
     }
 
@@ -19,7 +19,7 @@ class cityRepository{
             return cities;
         }catch(error){
             console.log("Something went wrong in city repository layer");
-            throw {error};
+            throw error;
         }
     }
 
@@ -29,7 +29,7 @@ class cityRepository{
             return city;
         }catch(error){
             console.log("Something went wrong in city repository layer");
-            throw {error};
+            throw error;
         }
     }
 
@@ -55,7 +55,7 @@ class cityRepository{
             return cities;
         }catch(error){
             console.log("Something went wrong in city repository layer");
-            throw {error};
+            throw error;
         }
     }
 
@@ -67,7 +67,7 @@ class cityRepository{
             return city;
         }catch(error){
             console.log("Something went wrong in city repository layer");
-            throw {error};
+            throw error;
         }
     }
 
@@ -81,7 +81,7 @@ class cityRepository{
             return city;
         }catch(error){
             console.log("Something went wrong in city repository layer");
-            throw {error};
+            throw error;
         }
     }
 };
