@@ -24,7 +24,7 @@ const create = async (req,res) => {
 
 const createBulk = async (req,res) => {
     try{
-        const cities = await cityService.createMultipleCities(req.body);
+        const cities = await cityService.createMultipleCities(req.body.cities); //body me cities add kar rhe hai
         return res.status(StatusCodes.CREATED).json({
             data : cities,
             success : true,
