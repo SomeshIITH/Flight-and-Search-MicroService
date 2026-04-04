@@ -74,6 +74,36 @@ class CityService{
             throw error;
         }
     }
+    async addAirportToCity(cityid,airportid){
+        try{
+            const airports = await this.cityRepo.addAirportToCity(cityid,airportid);
+            return airports;
+        }catch(error){
+            console.log("Something went wrong in city service layer");
+            throw error;
+        }
+    }
+
+    async removeAirportFromCity(cityid,airportid){
+        try{
+            const airports = await this.cityRepo.removeAirportFromCity(cityid,airportid);
+            return airports;
+        }catch(error){
+            console.log("Something went wrong in city service layer");
+            throw error;
+        }
+    }
+    async getCityWithMostAirports(){
+        try{
+            const airports = await this.cityRepo.getCityWithMostAirports();
+            return airports;
+        }catch(error){
+            console.log("Something went wrong in city service layer");
+            throw error;
+        }
+    }
+
+
 };
 
 module.exports = CityService;

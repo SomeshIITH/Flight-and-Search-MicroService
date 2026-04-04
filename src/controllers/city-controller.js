@@ -45,7 +45,7 @@ const get = async (req,res) => {
     try{
         const city = await cityService.getCityById(req.params.id);
         return res.status(StatusCodes.OK).json({
-            data : city,
+            data : city[0] || null,
             success : true,
             message : `City fetched successfully`,
             err : {}
@@ -135,7 +135,66 @@ const getAllAirportsOfCity = async (req,res) => {
     }
 }
 
-module.exports = {create,createBulk,get,getAll,update,destroy,getAllAirportsOfCity};
+const addAirportToCity = async (req,res) => {
+    try{
+        const airports = await cityService.addAirportToCity(req.params.cityid,req.params.airportid);
+        return res.status(StatusCodes.OK).json({
+            data : airports,
+            success : true,
+            message : "Airport added to city successfully",
+            err : {}
+        })
+    }catch(error){
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            data : {},
+            success : false,
+            message : "Airport added to city failed",
+            err : error
+        })
+    }
+}
+
+const removeAirportFromCity = async (req,res) => {
+    try{
+        const airports = await cityService.removeAirportFromCity(req.params.cityid,req.params.airportid);
+        return res.status(StatusCodes.OK).json({
+            data : airports,
+            success : true,
+            message : "Airport removed from city successfully",
+            err : {}
+        })
+    }catch(error){
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            data : {},
+            success : false,
+            message : "Airport removed from city failed",
+            err : error
+        })
+    }
+}
+
+const getCityWithMostAirports = async (req,res) => {
+    try{
+        const city = await cityService.getCityWithMostAirports();
+        return res.status(StatusCodes.OK).json({
+            data : city,
+            success : true,
+            message : "City with most airports fetched successfully",
+            err : {}
+        })
+    }catch(error){
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            data : {},
+            success : false,
+            message : "City with most airports fetched failed",
+            err : error
+        })
+    }
+}
+
+module.exports = {create,createBulk,get,getAll,update,destroy,getAllAirportsOfCity
+    ,addAirportToCity,removeAirportFromCity,getCityWithMostAirports
+};
 
 
 

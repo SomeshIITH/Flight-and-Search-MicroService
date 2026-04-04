@@ -1,5 +1,5 @@
-const {City} = require('./../models/index.js');
-const {Op} = require('sequelize'); //for operations like greater than, less than, like , strartswith etc
+const {City, Airport} = require('./../models/index.js');
+const { Op, fn, col } = require('sequelize'); //for operations like greater than, less than, like , strartswith etc
 
 class cityRepository{
 
@@ -128,11 +128,26 @@ class cityRepository{
     async getCityWithMostAirports(){
         try{
             const city = await City.findAll({
-                include : ["airports"],
-                order : [[{model : Airport , as : "airports"},'id','DESC']],
-                limit : 1
-            })
+                attributes: [
+                    'id',
+                    'name',
+                    [fn('COUNT', col('Airports.id')), 'airportCount']
+                ],
+                include: [{
+                    model: Airport,
+                    attributes: []
+                }],
+                group: ['City.id'],
+                order: [
+                    [fn('COUNT', col('Airports.id')), 'DESC'],
+                    ['id', 'ASC']
+                ],
+                limit: 1,
+                subQuery: false   // IMPORTANT FIX
+            });
+    
             return city;
+    
         }catch(error){
             console.log("Something went wrong in city repository layer");
             throw error;
