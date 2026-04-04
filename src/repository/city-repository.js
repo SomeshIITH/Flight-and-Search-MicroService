@@ -104,6 +104,40 @@ class cityRepository{
             throw error;
         }
     }
+    async addAirportToCity(cityid,airportid){
+        try{
+            const city = await City.findByPk(cityid);
+            await city.addAirport(airportid); // add + alias name of association
+            return city;
+        }catch(error){
+            console.log("Something went wrong in city repository layer");
+            throw error;
+        }
+    }
+    async removeAirportFromCity(cityid,airportid){
+        try{
+            const city = await City.findByPk(cityid);
+            await city.removeAirport(airportid); // remove + alias name of association
+            return city;
+        }catch(error){
+            console.log("Something went wrong in city repository layer");
+            throw error;
+        }
+    }
+
+    async getCityWithMostAirports(){
+        try{
+            const city = await City.findAll({
+                include : ["airports"],
+                order : [[{model : Airport , as : "airports"},'id','DESC']],
+                limit : 1
+            })
+            return city;
+        }catch(error){
+            console.log("Something went wrong in city repository layer");
+            throw error;
+        }
+    }
 };
 
 module.exports = cityRepository;
