@@ -1,0 +1,89 @@
+const {FlightRepository,AirplaneRepository} = require('./../repository/index.js');
+const {compareTime} = require('./../utils/helper.js')
+
+class FlightService{
+    constructor(){
+        this.flightrepo = new FlightRepository();
+        this.airplanerepo = new AirplaneRepository();
+    }
+
+    async createflight(data){
+        try{
+            if(!data.flightNumber || !data.airplaneId || !data.departureAirportId || !data.arrivalAirportId || !data.arrivalTime || !data.departureTime || !data.price){
+                throw new Error("All fields are required");
+            }
+            if(!compareTime(data.departureTime,data.arrivalTime)){
+                throw new Error("Arrival time should be greater than departure time");
+            }
+            if(!data.totalSeats){
+                const airplane = await this.airplanerepo.getairplaneById(data.airplaneId);
+                if(!airplane){
+                    throw new Error("Airplane not found with the given id");
+                }
+                data.totalSeats = airplane.capacity;
+            }
+            const flight = await this.flightrepo.createflight(data);
+            return flight;
+        }catch(error){
+            console.log("Something went wrong in flight service layer");
+            throw error;
+        }
+    }
+
+    async createMultipleflights(flights){
+        try{    
+            const result = [];
+            for(let flight of flights){
+                result.push(this.createflight(flight));
+            }
+            return result;
+        }catch(error){
+            console.log("Something went wrong in flight service layer");
+            throw error;
+        }
+    }
+    async getflightById(id){
+        try{
+            const flight = await this.flightrepo.getflightById(id);
+            return flight;
+        }catch(error){
+            console.log("Something went wrong in flight service layer");
+            throw error;
+        }
+    }
+    async getflightByFilter(filter){
+        try{
+            const flights = await this.flightrepo.getflightByFilter(filter);
+            return flights;
+        }catch(error){
+            console.log("Something went wrong in flight service layer");
+            throw error;
+        }
+    }
+
+    async updateflightById(id,data){
+        try{
+            if(data.departureTime && data.arrivalTime && !compareTime(data.departureTime,data.arrivalTime)){
+                throw new Error("Arrival time should be less than departure time");
+            }
+            const flight = await this.flightrepo.updateflightById(id,data);
+            return flight;
+        }catch(error){
+            console.log("Something went wrong in flight service layer");
+            throw error;
+        }
+    }
+
+    async destroyflightById(id){
+        try{
+            const flight = await this.flightrepo.destroyflightById(id);
+            return flight;
+        }catch(error){
+            console.log("Something went wrong in flight service layer");
+            throw error;
+        }
+    }
+
+}
+
+module.exports = FlightService;

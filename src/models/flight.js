@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull : false,
       unique : true
     },
-    aiplaneId: {
+    airplaneId: {
       type : DataTypes.INTEGER,
       allowNull : false
     },
