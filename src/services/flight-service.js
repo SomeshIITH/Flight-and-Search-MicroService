@@ -34,7 +34,7 @@ class FlightService{
         try{    
             const result = [];
             for(let flight of flights){
-                result.push(this.createflight(flight));
+                result.push(await this.createflight(flight));//needed else it will not wait for the promise to resolve and will return an array of promises instead of an array of flight objects
             }
             return result;
         }catch(error){
