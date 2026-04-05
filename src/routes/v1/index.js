@@ -52,6 +52,42 @@ router.get('/flight',FlightController.getAll);
 router.patch('/flight/:id',FlightController.update);
 router.delete('/flight/:id',FlightController.destroy);
 
+
+// {
+//     "flights" : [
+//         {
+//             "flightNumber": "XtoYY1",
+//             "airplaneId": 2,
+//             "departureAirportId": 5,
+//             "arrivalAirportId": 6,
+//             "arrivalTime": "2025-01-11T17:45:00.000Z",
+//             "departureTime": "2025-01-11T14:30:00.000Z",
+//             "price": 6600,
+//             "boardingGate": "T2"
+//         },
+//         {
+//             "flightNumber": "XtoYY2",
+//             "airplaneId": 4,
+//             "departureAirportId": 5,
+//             "arrivalAirportId": 6,
+//             "arrivalTime": "2025-01-13T17:45:00.000Z",
+//             "departureTime": "2025-01-13T12:30:00.000Z",
+//             "price": 9600,
+//             "boardingGate": "T3"
+//         },
+//         {
+//             "flightNumber": "XtoYY3",
+//             "airplaneId": 5,
+//             "departureAirportId": 5,
+//             "arrivalAirportId": 6,
+//             "arrivalTime": "2025-01-16T17:45:00.000Z",
+//             "departureTime": "2025-01-15T14:30:00.000Z",
+//             "price": 8600,
+//             "boardingGate": "T8"
+//         }
+//     ]
+// }
+
 module.exports = router
 
 

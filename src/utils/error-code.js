@@ -1,0 +1,11 @@
+//JUST FOR PRACTISING OF ENUMS I NOT USED IT 
+
+const ErrorCodes = Object.freeze({
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    SERVER_ERROR: 500,
+    SUCCESS: 201,
+    OK: 200
+});
