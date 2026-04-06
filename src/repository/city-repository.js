@@ -14,9 +14,14 @@ class cityRepository{
         }
     }
 
-    async createMultipleCities(CityList){
+    async createMultipleCities(cityList){
         try{
-            const cities = await City.bulkCreate(CityList);
+            // No transaction needed here because we are telling the DB 
+        // to handle conflicts row-by-row.
+        const cities = await City.bulkCreate(cityList, { 
+            ignoreDuplicates: true, // This tells SQL: "ON DUPLICATE KEY IGNORE"
+            validate: true          // Still check for nulls/data types before sending
+        });
             return cities;
         }catch(error){
             console.log("Something went wrong in city repository layer");
