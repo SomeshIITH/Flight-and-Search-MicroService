@@ -62,10 +62,11 @@ const get = async (req,res) => {
 }
 const getAll = async (req,res) => {
     try{
-        // console.log("req.query ",req.query);
+        // req.query contains our filters + limit/offset
         const flights = await flightService.getflightByFilter(req.query);
         return res.status(StatusCodes.OK).json({
-            data : flights,
+            data: flights.rows,      // The actual flights
+            total: flights.count,    // Total matches in DB (for frontend)
             success : true,
             message : "flight fetched successfully",
             err : {}

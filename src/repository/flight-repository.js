@@ -5,27 +5,27 @@ class FlightRepository{
 
     #createFilter(data){
         let filter = {};
-        if(data.departureAirportId)filter.departureAirportId = data.departureAirportId;
-        if(data.arrivalAirportId)filter.arrivalAirportId = data.arrivalAirportId;
-        //filtering based on price
-        //M1
-        // if(data.minPrice && data.maxPrice) {
-        //     Object.assign(filter, {
-        //         [Op.and]: [
-        //             { price: {[Op.lte]: data.maxPrice} }, 
-        //             { price: {[Op.gte]: data.minPrice} }
-        //         ]
-        //     })
-        // }
-        //M2
-        let pricefilter = [];
-        if(data.minPrice){
-            pricefilter.push({price : {[Op.gte] : data.minPrice}});
+
+        if (data.departureAirportId) {
+            filter.departureAirportId = data.departureAirportId;
         }
-        if(data.maxPrice){
-            pricefilter.push({price : {[Op.lte] : data.maxPrice}});
+        if (data.arrivalAirportId) {
+            filter.arrivalAirportId = data.arrivalAirportId;
         }
-        Object.assign(filter,{[Op.and] : pricefilter});
+
+        let priceFilter = [];
+        if (data.minPrice) {
+            priceFilter.push({ price: { [Op.gte]: data.minPrice } });
+        }
+        if (data.maxPrice) {
+            priceFilter.push({ price: { [Op.lte]: data.maxPrice } });
+        }
+
+        // Only add to filter if the array is NOT empty
+        if (priceFilter.length > 0) {
+            Object.assign(filter, { [Op.and]: priceFilter });
+        }
+
         return filter;
     }
 
@@ -69,8 +69,14 @@ class FlightRepository{
     async getflightByFilter(filter){
         try{
             const filterObject = this.#createFilter(filter);
-            const flights = await Flight.findAll({
-                where : filterObject
+            // Use findAndCountAll instead of findAll
+            // This returns { count: totalItems, rows: [flights] }
+            // Very useful for the frontend to calculate total pages
+            const flights = await Flight.findAndCountAll({
+                where : filterObject,
+                limit: data.limit ? parseInt(data.limit) : 10, // Default to 10
+                offset: data.offset ? parseInt(data.offset) : 0,
+                order: [['price', 'ASC']] // Pagination NEEDS a stable sort order
             })
             return flights;
         }catch(error){
