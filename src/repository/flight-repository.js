@@ -29,7 +29,7 @@ class FlightRepository{
         return filter;
     }
 
-    async createflight(data){
+    async createflight(data,transaction){
         try{
             //handled in service layer
             // let payload = {...data};
@@ -37,7 +37,8 @@ class FlightRepository{
             //     const airplane = await Airplane.findByPk(data.airplaneId);
             //     payload = {...payload, totalSeats : airplane.capacity};
             // }
-            const flight = await Flight.create(data); 
+            /// Pass the transaction to the create call
+            const flight = await Flight.create(data,{transaction}); 
             return flight;
         }catch(error){
             console.log("Something went wrong in flight repository layer");
@@ -108,6 +109,30 @@ class FlightRepository{
             return flight;
         }catch(error){
             console.log("Something went wrong in flight repository layer");
+            throw error;
+        }
+    }
+
+    async getOverlappingFlights(airplaneId,arrivalTime,departureTime,transaction){
+        try{
+            // Ex there exist flight whose departure is Da , arrival is Aa , then the new flight B must not overlap
+            //condition for overalp Db <= Aa && Da <= Ab
+            const flights = await Flight.findAll({
+                where : {
+                    airplaneId : airplaneId,
+                    [Op.and] : [
+                        {
+                            departureTime : { [Op.lt] : arrivalTime } 
+                        },
+                        {
+                            arrivalTime : { [Op.gt] : departureTime }
+                        }
+                    ]
+                },
+                transaction : transaction
+            })
+            return flights;
+        }catch(error){
             throw error;
         }
     }

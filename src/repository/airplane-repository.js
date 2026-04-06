@@ -30,9 +30,9 @@ class AirplaneRepository{
         }
     }
 
-    async getairplaneById(id){
-        try{
-            const airplane = await Airplane.findByPk(id);
+    async getairplaneById(id,options = {}){
+        try{// We pass the entire options object (which contains transaction and lock)
+            const airplane = await Airplane.findByPk(id,options);
             return airplane;
         }catch(error){
             console.log("Something went wrong in airplane repository layer");
