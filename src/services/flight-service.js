@@ -2,6 +2,9 @@ const {FlightRepository,AirplaneRepository} = require('./../repository/index.js'
 const {compareTime} = require('./../utils/helper.js')
 const db = require('./../models/index.js');
 const redisClient = require('./../config/redis-config.js');
+const AppError  = require('./../utils/app-error.js');
+const {StatusCodes} = require('http-status-codes');
+
 
 class FlightService{
     constructor(){
@@ -12,10 +15,10 @@ class FlightService{
     // This is the "Worker" logic. It doesn't know about transaction start/stop.
     async _createFlightLogic(data, transaction) {
         if (!data.flightNumber || !data.airplaneId || !data.departureAirportId || !data.arrivalAirportId || !data.arrivalTime || !data.departureTime || !data.price) {
-            throw new Error("All fields are required");
+            throw new AppError("All fields are required", StatusCodes.BAD_REQUEST);
         }
         if (!compareTime(data.departureTime, data.arrivalTime)) {
-            throw new Error("Arrival time should be greater than departure time");
+            throw new AppError("Arrival time must be after departure time", StatusCodes.BAD_REQUEST);
         }
 
         // ALWAYS LOCK THE AIRPLANE. Even if totalSeats is provided, 
@@ -26,7 +29,7 @@ class FlightService{
         if (!data.totalSeats) data.totalSeats = airplane.capacity;
 
         const overlapping = await this.flightrepo.getOverlappingFlights(data.airplaneId, data.arrivalTime, data.departureTime, transaction);
-        if (overlapping.length > 0) throw new Error(`Conflict for airplane ${data.airplaneId}`);
+        if (overlapping.length > 0) throw new AppError("Airplane is already scheduled during this time", StatusCodes.CONFLICT);
 
         return await this.flightrepo.createflight(data, transaction);
     }
@@ -98,7 +101,7 @@ class FlightService{
     async updateflightById(id,data){
         try{
             if(data.departureTime && data.arrivalTime && !compareTime(data.departureTime,data.arrivalTime)){
-                throw new Error("Arrival time should be less than departure time");
+                throw new Error("Arrival time should be greater than departure time");
             }
             const flight = await this.flightrepo.updateflightById(id,data);
             return flight;

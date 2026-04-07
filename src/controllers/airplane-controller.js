@@ -3,26 +3,27 @@ const {StatusCodes} = require('http-status-codes');
 
 const airplaneService = new AirplaneService();
 
-const create = async (req,res) => {
+const create = async (req,res,next) => {
     try{
         const airplane = await airplaneService.createairplane(req.body);
         return res.status(StatusCodes.CREATED).json({
             data : airplane,
             success : true,
-            message : `airplane ${airplane.name} created successfully`,
+            message : `airplane ${airplane.modelNumber} created successfully`,
             err : {}
         })
     }catch(error){
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            data : {},
-            success : false,
-            message : "airplane not created",
-            err : error
-        })
+        // return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        //     data : {},
+        //     success : false,
+        //     message : "airplane not created",
+        //     err : error
+        // })
+        next(error);
     }
 }
 
-const createBulk = async (req,res) => {
+const createBulk = async (req,res,next) => {
     try{
         const airplanes = await airplaneService.createMultipleairplanes(req.body.airplanes); 
         return res.status(StatusCodes.CREATED).json({
@@ -32,16 +33,17 @@ const createBulk = async (req,res) => {
             err : {}
         })
     }catch(error){
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            data : {},
-            success : false,
-            message : "airplane not created",
-            err : error
-        })
+        // return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        //     data : {},
+        //     success : false,
+        //     message : "airplane not created",
+        //     err : error
+        // })
+        next(error);
     }
 }
 
-const get = async (req,res) => {
+const get = async (req,res,next) => {
     try{
         const airplane = await airplaneService.getairplaneById(req.params.id);
         return res.status(StatusCodes.OK).json({
@@ -51,15 +53,16 @@ const get = async (req,res) => {
             err : {}
         })
     }catch(error){
-        return  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            data : {},
-            success : false,
-            message : "airplane not fetched",
-            err : error
-        })
+        // return  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        //     data : {},
+        //     success : false,
+        //     message : "airplane not fetched",
+        //     err : error
+        // })
+        next(error);
     }
 }
-const getAll = async (req,res) => {
+const getAll = async (req,res,next) => {
     try{
         // console.log("req.query ",req.query);
         const airplanes = await airplaneService.getairplaneByFilter(req.query);
@@ -70,15 +73,16 @@ const getAll = async (req,res) => {
             err : {}
         })
     }catch(error){
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            data : {},
-            success : false,
-            message : "airplane fetched failed",
-            err : error
-        })
+        // return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        //     data : {},
+        //     success : false,
+        //     message : "airplane fetched failed",
+        //     err : error
+        // })
+        next(error);
     }
 }
-const update = async (req,res) => {
+const update = async (req,res,next) => {
     try{
         const airplane = await airplaneService.updateairplaneById(req.params.id,req.body);
         return res.status(StatusCodes.OK).json({
@@ -88,16 +92,17 @@ const update = async (req,res) => {
             err :{}
         })
     }catch(error){
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            data : {},
-            success : false,
-            message : "Update failed",
-            err : error
-        })
+        // return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        //     data : {},
+        //     success : false,
+        //     message : "Update failed",
+        //     err : error
+        // })
+        next(error);
     }
 }
 
-const destroy = async (req,res) => {
+const destroy = async (req,res,next) => {
     try{
         const airplane = await airplaneService.destroyairplaneById(req.params.id);
         return res.status(StatusCodes.OK).json({
@@ -107,12 +112,13 @@ const destroy = async (req,res) => {
             err :{}
         })
     }catch(error){
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            data : {},
-            success : false,
-            message : "deletion failed",
-            err : error
-        })
+        // return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        //     data : {},
+        //     success : false,
+        //     message : "deletion failed",
+        //     err : error
+        // })
+        next(error);
     }
 }
 
