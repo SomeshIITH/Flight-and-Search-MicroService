@@ -3,9 +3,13 @@ const router = express.Router();
 
 const {CityController,AirportController,AirplaneController,FlightController} = require('./../../controllers/index.js');
 const {FlightMiddleware} = require('./../../middlewares/index.js');
+const validate = require('./../../middlewares/validate-request.js');
+const {flightSchema,airportSchema,airplaneSchema,citySchema} = require('./../../utils/validators/index.js');
+
 
 //City Routes
-router.post('/city',CityController.create);
+// router.post('/city',CityController.create);
+router.post('/city',validate(citySchema),CityController.create);
 router.post('/cities',CityController.createBulk);
 //if we not put this route before /city/:id then it will consider with-most-airports as id and will not work
 router.get('/city/with-most-airports',CityController.getCityWithMostAirports);
@@ -29,7 +33,8 @@ router.delete('/city/:cityid/Airport/:airportid',CityController.removeAirportFro
 
 
 //Airport Routes
-router.post('/airport',AirportController.create);
+// router.post('/airport',AirportController.create);
+router.post('/airport',validate(airportSchema),AirportController.create);
 router.post('/airports',AirportController.createBulk);
 router.get('/airport/:id',AirportController.get);
 router.get('/airport',AirportController.getAll);
@@ -37,7 +42,8 @@ router.patch('/airport/:id',AirportController.update);
 router.delete('/airport/:id',AirportController.destroy);
 
 //Airplane Routes
-router.post('/airplane',AirplaneController.create);
+// router.post('/airplane',AirplaneController.create);
+router.post('/airplane',validate(airplaneSchema),AirplaneController.create);
 router.post('/airplanes',AirplaneController.createBulk);
 router.get('/airplane/:id',AirplaneController.get);
 router.get('/airplane',AirplaneController.getAll);
@@ -45,7 +51,8 @@ router.patch('/airplane/:id',AirplaneController.update);
 router.delete('/airplane/:id',AirplaneController.destroy);
 
 //Flights Routes
-router.post('/flight',FlightMiddleware.validateCreateFlight,FlightController.create);
+// router.post('/flight',FlightMiddleware.validateCreateFlight,FlightController.create);
+router.post('/flight',validate(flightSchema),FlightController.create);
 router.post('/flights',FlightController.createBulk);
 router.get('/flight/:id',FlightController.get);
 router.get('/flight',FlightController.getAll);
