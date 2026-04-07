@@ -5,7 +5,7 @@ const {CityController,AirportController,AirplaneController,FlightController} = r
 const {FlightMiddleware} = require('./../../middlewares/index.js');
 const validate = require('./../../middlewares/validate-request.js');
 const {flightSchema,airportSchema,airplaneSchema,citySchema} = require('./../../utils/validators/index.js');
-const bulkCitySchema = z.object({cities: z.array(citySchema)});
+// const bulkCitySchema = z.object({cities: z.array(citySchema)});
 
 
 // --- City Routes ---
@@ -22,7 +22,7 @@ router.post('/cities/:cityid/airports/:airportid', CityController.addAirportToCi
 router.delete('/cities/:cityid/airports/:airportid', CityController.removeAirportFromCity);
 
 // --- Airport Routes ---
-router.post('/airports', validate(airportSchema), AirportController.create);
+router.post('/airports',validate(airportSchema), AirportController.create);
 router.get('/airports/:id', AirportController.get);
 router.get('/airports', AirportController.getAll);
 router.patch('/airports/:id', AirportController.update);
@@ -40,6 +40,22 @@ router.get('/flights', FlightController.getAll);
 router.patch('/flights/:id', FlightController.update);
 
 module.exports = router;
+
+/*
+
+{
+  "flightNumber": "AI101",
+  "airplaneId": 1,
+  "departureAirportId": 1,
+  "arrivalAirportId": 3,
+  "arrivalTime": "2026-04-07T03:50:00+05:30",
+  "departureTime": "2026-04-07T02:50:00+05:30",
+  "price": 7777,
+  "totalSeats": 300,
+  "remainingSeats": 300
+}
+  
+ */
 
 
 //if we not put this route before /city/:id then it will consider with-most-airports as id and will not work

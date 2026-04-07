@@ -9,7 +9,7 @@ const globalErrorHandler = require('./middlewares/error-handler.js');
 
 const SetupServer = async () => {
     const app = express();
-    app.use(morgan('combined'));
+    // app.use(morgan('combined'));
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json());
     app.use('/api' , apiRoutes);
