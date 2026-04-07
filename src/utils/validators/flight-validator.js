@@ -17,4 +17,4 @@ const flightSchema = z.object({
 //refine is used for custom validation
 //strict(); <--  Throws error if extra attributes are passed
 // .passthrough() <--- This allows extra fields to stay in the object
-module.exports = { flightSchema };
+module.exports = flightSchema ;

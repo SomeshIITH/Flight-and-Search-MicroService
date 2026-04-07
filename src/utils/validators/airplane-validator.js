@@ -5,4 +5,4 @@ const airplaneSchema = z.object({
     capacity: z.number().int().positive().max(1000).optional() // Optional if you have a DB default
 }).passthrough();
 
-module.exports = { airplaneSchema };
+module.exports = airplaneSchema;
