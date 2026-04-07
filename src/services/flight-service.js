@@ -24,7 +24,7 @@ class FlightService{
         // ALWAYS LOCK THE AIRPLANE. Even if totalSeats is provided, 
         // we lock it to prevent race conditions during the overlap check.
         const airplane = await this.airplanerepo.getairplaneById(data.airplaneId, { transaction, lock: transaction.LOCK.UPDATE });
-        if (!airplane) throw new Error("Airplane not found");
+        if (!airplane)throw new AppError("The airplane with the given ID was not found", StatusCodes.NOT_FOUND);
 
         if (!data.totalSeats) data.totalSeats = airplane.capacity;
 
@@ -61,6 +61,7 @@ class FlightService{
     async getflightById(id){
         try{
             const flight = await this.flightrepo.getflightById(id);
+            if(!flight)throw new AppError("Flight not found",StatusCodes.NOT_FOUND);
             return flight;
         }catch(error){
             console.log("Something went wrong in flight service layer");
@@ -101,9 +102,10 @@ class FlightService{
     async updateflightById(id,data){
         try{
             if(data.departureTime && data.arrivalTime && !compareTime(data.departureTime,data.arrivalTime)){
-                throw new Error("Arrival time should be greater than departure time");
+                throw new AppError("Arrival time should be greater than departure time",StatusCodes.BAD_REQUEST);
             }
             const flight = await this.flightrepo.updateflightById(id,data);
+            if(!flight)throw new AppError("Flight not found",StatusCodes.NOT_FOUND);
             return flight;
         }catch(error){
             console.log("Something went wrong in flight service layer");
@@ -114,6 +116,7 @@ class FlightService{
     async destroyflightById(id){
         try{
             const flight = await this.flightrepo.destroyflightById(id);
+            if(!flight)throw new AppError("Flight not found",StatusCodes.NOT_FOUND);
             return flight;
         }catch(error){
             console.log("Something went wrong in flight service layer");
