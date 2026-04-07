@@ -16,15 +16,24 @@ module.exports = {
       },
       airplaneId: {
         type: Sequelize.INTEGER,
-        allowNull : false
+        allowNull : false,
+        references : {
+          "model" : "Airplanes",
+          "key" : "id"
+        },
+        onDelete : "CASCADE"
       },
       departureAirportId: {
         type: Sequelize.INTEGER,
-        allowNull : false
+        allowNull : false,
+        references : {"model" : "Airports" , "key" : "id"},
+        onDelete : "CASCADE"
       },
       arrivalAirportId: {
         type: Sequelize.INTEGER,
-        allowNull : false
+        allowNull : false,
+        references : {"model" : "Airports" , "key" : "id"},
+        onDelete : "CASCADE"
       },
       arrivalTime: {
         type: Sequelize.DATE,
@@ -45,6 +54,11 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull : false
       },
+      remainingSeats: {
+        type: Sequelize.INTEGER,
+        allowNull : false,
+        defaultValue : 0
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -53,6 +67,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       }
+    });
+    // Add Composite Index after creating table
+    await queryInterface.addIndex('Flights', ['departureAirportId', 'arrivalAirportId', 'price'], {
+      name: 'flights_search_index'
     });
   },
   async down(queryInterface, Sequelize) {
