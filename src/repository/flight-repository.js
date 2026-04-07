@@ -1,5 +1,6 @@
 const {Flight,Airplane} = require('./../models/index.js')
 const {Op} = require('sequelize'); //for operations like greater than, less than, like , strartswith etc
+const db = require('./../models/index.js')
 
 class FlightRepository{
 
@@ -46,14 +47,24 @@ class FlightRepository{
         }
     }
 
-    async createMultipleflights(flightList){
-        try{
-            const flights = await Flight.bulkCreate(flightList);
-            return flights;
-        }catch(error){
-            console.log("Something went wrong in flight repository layer");
-            throw error;
-        }
+    async createMultipleflights(flights){
+        // Start one big transaction for the entire batch
+        return await db.sequelize.transaction(async (t) => {
+            try {
+                const results = [];
+                for (const flightData of flights) {
+                    // We reuse our existing createflight logic!
+                    // This ensures each flight is checked for overlaps
+                    const flight = await this.createflight(flightData, t);
+                    results.push(flight);
+                }
+                return results;
+            } catch (error) {
+                // If even ONE flight in the loop has a conflict, 
+                // the whole batch rolls back.
+                throw error;
+            }
+        });
     }
 
     async getflightById(id){
@@ -74,8 +85,8 @@ class FlightRepository{
             // Very useful for the frontend to calculate total pages
             const flights = await Flight.findAndCountAll({
                 where : filterObject,
-                limit: data.limit ? parseInt(data.limit) : 10, // Default to 10
-                offset: data.offset ? parseInt(data.offset) : 0,
+                limit: filter.limit ? parseInt(fliter.limit) : 10, // Default to 10
+                offset: filter.offset ? parseInt(filter.offset) : 0,
                 order: [['price', 'ASC']] // Pagination NEEDS a stable sort order
             })
             return flights;
@@ -141,6 +152,25 @@ class FlightRepository{
         }catch(error){
             throw error;
         }
+    }
+    // Repository just does the work using the provided transaction 't'
+    async updateRemainingSeats(flightId, seats, dec = true, transaction) {
+        try {
+            const flight = await Flight.findByPk(flightId, {
+                transaction: transaction,
+                lock: transaction.LOCK.UPDATE
+            });
+
+            if (dec) {
+                if (flight.remainingSeats < seats) {
+                    throw new Error("Not enough seats available");
+                }
+                await flight.decrement('remainingSeats', { by: seats, transaction });
+            } else {
+                await flight.increment('remainingSeats', { by: seats, transaction });
+            }
+            return flight;
+        } catch (error) { throw error; }
     }
 
 };

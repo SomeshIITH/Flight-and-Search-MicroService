@@ -49,6 +49,10 @@ module.exports = (sequelize, DataTypes) => {
     totalSeats: {
       type : DataTypes.INTEGER,
       allowNull : false
+    },
+    remainingSeats: {
+      type : DataTypes.INTEGER,
+      allowNull : false
     }
   }, {
     sequelize,
