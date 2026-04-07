@@ -5,14 +5,45 @@ const {CityController,AirportController,AirplaneController,FlightController} = r
 const {FlightMiddleware} = require('./../../middlewares/index.js');
 const validate = require('./../../middlewares/validate-request.js');
 const {flightSchema,airportSchema,airplaneSchema,citySchema} = require('./../../utils/validators/index.js');
+const bulkCitySchema = z.object({cities: z.array(citySchema)});
 
 
-//City Routes
-// router.post('/city',CityController.create);
-router.post('/city',validate(citySchema),CityController.create);
-router.post('/cities',CityController.createBulk);
+// --- City Routes ---
+router.post('/cities', validate(citySchema), CityController.create); 
+router.get('/cities/with-most-airports', CityController.getCityWithMostAirports);
+router.get('/cities/:id', CityController.get);
+router.get('/cities', CityController.getAll);
+router.patch('/cities/:id', CityController.update);
+router.delete('/cities/:id', CityController.destroy);
+
+// City-Airport Sub-resources
+router.get('/cities/:id/airports', CityController.getAllAirportsOfCity);
+router.post('/cities/:cityid/airports/:airportid', CityController.addAirportToCity);
+router.delete('/cities/:cityid/airports/:airportid', CityController.removeAirportFromCity);
+
+// --- Airport Routes ---
+router.post('/airports', validate(airportSchema), AirportController.create);
+router.get('/airports/:id', AirportController.get);
+router.get('/airports', AirportController.getAll);
+router.patch('/airports/:id', AirportController.update);
+router.delete('/airports/:id', AirportController.destroy);
+
+// --- Airplane Routes ---
+router.post('/airplanes', validate(airplaneSchema), AirplaneController.create);
+router.get('/airplanes/:id', AirplaneController.get);
+router.get('/airplanes', AirplaneController.getAll);
+
+// --- Flight Routes ---
+router.post('/flights', validate(flightSchema), FlightController.create);
+router.get('/flights/:id', FlightController.get);
+router.get('/flights', FlightController.getAll);
+router.patch('/flights/:id', FlightController.update);
+
+module.exports = router;
+
+
 //if we not put this route before /city/:id then it will consider with-most-airports as id and will not work
-router.get('/city/with-most-airports',CityController.getCityWithMostAirports);
+// router.post('/cities',validate(bulkCitySchema),CityController.createBulk);
 /*
  {
     "cities" : [
@@ -21,45 +52,14 @@ router.get('/city/with-most-airports',CityController.getCityWithMostAirports);
     ]
 }
  */
-router.get('/city/:id',CityController.get);
-router.get('/city',CityController.getAll);
-router.patch('/city/:id',CityController.update);
-router.delete('/city/:id',CityController.destroy);
 
-router.get('/city/:id/Airport',CityController.getAllAirportsOfCity);
-router.post('/city/:cityid/Airport/:airportid',CityController.addAirportToCity);
-router.delete('/city/:cityid/Airport/:airportid',CityController.removeAirportFromCity);
-
-
-
-//Airport Routes
-// router.post('/airport',AirportController.create);
-router.post('/airport',validate(airportSchema),AirportController.create);
-router.post('/airports',AirportController.createBulk);
-router.get('/airport/:id',AirportController.get);
-router.get('/airport',AirportController.getAll);
-router.patch('/airport/:id',AirportController.update);
-router.delete('/airport/:id',AirportController.destroy);
+// router.post('/airports',AirportController.createBulk);
 
 //Airplane Routes
-// router.post('/airplane',AirplaneController.create);
-router.post('/airplane',validate(airplaneSchema),AirplaneController.create);
-router.post('/airplanes',AirplaneController.createBulk);
-router.get('/airplane/:id',AirplaneController.get);
-router.get('/airplane',AirplaneController.getAll);
-router.patch('/airplane/:id',AirplaneController.update);
-router.delete('/airplane/:id',AirplaneController.destroy);
+// router.post('/airplanes',AirplaneController.createBulk);
 
 //Flights Routes
-// router.post('/flight',FlightMiddleware.validateCreateFlight,FlightController.create);
-router.post('/flight',validate(flightSchema),FlightController.create);
-router.post('/flights',FlightController.createBulk);
-router.get('/flight/:id',FlightController.get);
-router.get('/flight',FlightController.getAll);
-router.patch('/flight/:id',FlightController.update);
-router.delete('/flight/:id',FlightController.destroy);
-
-
+// router.post('/flights',FlightController.createBulk);
 // {
 //     "flights" : [
 //         {
