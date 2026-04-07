@@ -1,4 +1,4 @@
-const AppError = require('../utils/errors/app-error');
+const AppError = require('./../utils/app-error.js');
 const { StatusCodes } = require('http-status-codes');
 
 const validate = (schema) => (req, res, next) => {
