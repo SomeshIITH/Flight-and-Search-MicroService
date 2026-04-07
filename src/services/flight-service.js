@@ -1,35 +1,7 @@
 const {FlightRepository,AirplaneRepository} = require('./../repository/index.js');
 const {compareTime} = require('./../utils/helper.js')
-const {db} = require('./../models/index.js');
-
-
-// try{
-//     if(!data.flightNumber || !data.airplaneId || !data.departureAirportId || !data.arrivalAirportId || !data.arrivalTime || !data.departureTime || !data.price){
-//         throw new Error("All fields are required");
-//     }
-//     if(!compareTime(data.departureTime,data.arrivalTime)){
-//         throw new Error("Arrival time should be greater than departure time");
-//     }
-//     if(!data.totalSeats){
-//         const airplane = await this.airplanerepo.getairplaneById(data.airplaneId);
-//         if(!airplane){
-//             throw new Error("Airplane not found with the given id");
-//         }
-//         data.totalSeats = airplane.capacity;
-//     }
-//     //check if Airplane already is used in some other flight overlappingproblem
-//     const overlappingFlights = await this.flightrepo.getOverlappingFlights(data.airplaneId,data.arrivalTime,data.departureTime);
-//     if(overlappingFlights.length > 0){
-//         throw new Error("Airplane is already used in some other flight");
-//     }
-
-
-//     const flight = await this.flightrepo.createflight(data);
-//     return flight;
-// }catch(error){
-//     console.log("Something went wrong in flight service layer");
-//     throw error;
-// }
+const db = require('./../models/index.js');
+const redisClient = require('./../config/redis-config.js');
 
 class FlightService{
     constructor(){
@@ -37,53 +9,52 @@ class FlightService{
         this.airplanerepo = new AirplaneRepository();
     }
 
-    async createflight(data){
-        return await db.sequelize.transaction(async (t) => {
-            
-            try{
-                if(!data.flightNumber || !data.airplaneId || !data.departureAirportId || !data.arrivalAirportId || !data.arrivalTime || !data.departureTime || !data.price){
-                    throw new Error("All fields are required");
-                }
-                if(!compareTime(data.departureTime,data.arrivalTime)){
-                    throw new Error("Arrival time should be greater than departure time");
-                }
-                if(!data.totalSeats){
-                    // LOCK THE AIRPLANE RECORD (Pessimistic Locking)
-                    const airplane = await this.airplanerepo.getairplaneById(data.airplaneId,{transaction : t,lock : t.LOCK.UPDATE}); 
-                    if(!airplane){
-                        throw new Error("Airplane not found with the given id");
-                    }
-                    data.totalSeats = airplane.capacity;
-                }
-                //check if Airplane already is used in some other flight overlappingproblem
-                const overlappingFlights = await this.flightrepo.getOverlappingFlights(data.airplaneId,data.arrivalTime,data.departureTime,t);
-                if(overlappingFlights.length > 0){
-                    throw new Error("Airplane is already used in some other flight");
-                }
-                const flight = await this.flightrepo.createflight(data,t);
-                return flight; // Transaction auto-commits here
+    // This is the "Worker" logic. It doesn't know about transaction start/stop.
+    async _createFlightLogic(data, transaction) {
+        if (!data.flightNumber || !data.airplaneId || !data.departureAirportId || !data.arrivalAirportId || !data.arrivalTime || !data.departureTime || !data.price) {
+            throw new Error("All fields are required");
+        }
+        if (!compareTime(data.departureTime, data.arrivalTime)) {
+            throw new Error("Arrival time should be greater than departure time");
+        }
 
-            }catch(error){
-                // Transaction auto-rolls back here
-                console.log("Something went wrong in flight service layer");
-                throw error;
-            }
+        // ALWAYS LOCK THE AIRPLANE. Even if totalSeats is provided, 
+        // we lock it to prevent race conditions during the overlap check.
+        const airplane = await this.airplanerepo.getairplaneById(data.airplaneId, { transaction, lock: transaction.LOCK.UPDATE });
+        if (!airplane) throw new Error("Airplane not found");
 
-        })
+        if (!data.totalSeats) data.totalSeats = airplane.capacity;
+
+        const overlapping = await this.flightrepo.getOverlappingFlights(data.airplaneId, data.arrivalTime, data.departureTime, transaction);
+        if (overlapping.length > 0) throw new Error(`Conflict for airplane ${data.airplaneId}`);
+
+        return await this.flightrepo.createflight(data, transaction);
     }
 
-    async createMultipleflights(flights){
-        try{    
+    // Public API for single flight
+    async createflight(data) {
+        return await db.sequelize.transaction(async (t) => {
+            return await this._createFlightLogic(data, t);
+        });
+        /* In transaction, the following happens:
+        If the function finishes successfully: It automatically calls COMMIT.
+        If the function throws an error: It automatically calls ROLLBACK.
+        so dont need to bind in try/catch
+        */
+    }
+
+    // Public API for bulk flights - NOW ATOMIC!
+    async createMultipleflights(flights) {
+        return await db.sequelize.transaction(async (t) => {
             const result = [];
-            for(let flight of flights){
-                result.push(await this.createflight(flight));//needed else it will not wait for the promise to resolve and will return an array of promises instead of an array of flight objects
+            for (let flight of flights) {
+                // All flights use the SAME transaction 't'
+                result.push(await this._createFlightLogic(flight, t));
             }
             return result;
-        }catch(error){
-            console.log("Something went wrong in flight service layer");
-            throw error;
-        }
+        });
     }
+
     async getflightById(id){
         try{
             const flight = await this.flightrepo.getflightById(id);
@@ -94,12 +65,33 @@ class FlightService{
         }
     }
     async getflightByFilter(filter){
-        try{
+        try {
+            //I implemneted cache aside pattern
+            // 1. Generate a unique key based on the search parameters
+            const cacheKey = `flights:${JSON.stringify(filter)}`;
+    
+            // 2. Check if data exists in Redis
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                console.log("CACHE HIT");
+                return JSON.parse(cachedData);
+            }
+    
+            // 3. Cache Miss: Go to Database
+            console.log("CACHE MISS");
             const flights = await this.flightrepo.getflightByFilter(filter);
+    
+            // 4. Store in Redis with an Expiry (TTL - Time To Live)
+            // We don't want old schedules staying forever!
+            await redisClient.set(cacheKey, JSON.stringify(flights), {
+                EX: 3600 // Expire in 1 hour
+            });
+    
             return flights;
-        }catch(error){
-            console.log("Something went wrong in flight service layer");
-            throw error;
+        } catch (error) {
+            // If Redis is down, don't crash the app! Just fallback to DB.
+            console.log("Redis Error, falling back to DB", error);
+            return await this.flightrepo.getflightByFilter(filter);
         }
     }
 

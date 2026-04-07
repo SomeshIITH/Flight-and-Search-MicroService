@@ -85,7 +85,7 @@ class FlightRepository{
             // Very useful for the frontend to calculate total pages
             const flights = await Flight.findAndCountAll({
                 where : filterObject,
-                limit: filter.limit ? parseInt(fliter.limit) : 10, // Default to 10
+                limit: filter.limit ? parseInt(filter.limit) : 10, // Default to 10
                 offset: filter.offset ? parseInt(filter.offset) : 0,
                 order: [['price', 'ASC']] // Pagination NEEDS a stable sort order
             })
