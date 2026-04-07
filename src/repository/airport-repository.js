@@ -1,5 +1,7 @@
 const {Airport} = require('./../models/index.js');
 const {Op} = require('sequelize'); //for operations like greater than, less than, like , strartswith etc
+const AppError = require('./../utils/app-error.js')
+const { StatusCodes } = require('http-status-codes');
 
 class AirportRepository{
 
@@ -41,34 +43,17 @@ class AirportRepository{
 
     async getAirportByFilter(filter){
         try{
-            if(filter.name){//find does not exist in sequelize
-                const airport = await Airport.findAll({
-                    where : {
-                        name : {
-                            [Op.startsWith] : filter.name  // for prefix matching , if user enter pray -> prayagraj will come
-                        }
-                    }
-                })
-                return airport;
+            const where = {};
+            if (filter.name) {
+                where.name = { [Op.startsWith]: filter.name };
             }
-            if(filter.id){
-                const airport = await Airport.findAll({
-                    where : {
-                        id : filter.id
-                    }
-                })
-                return airport;
+            if (filter.cityId) {
+                where.cityId = filter.cityId;
             }
-            if(filter.cityId){
-                const airport = await Airport.findAll({
-                    where : {
-                        cityId : filter.cityId
-                    }
-                })
-                return airport;
+            if (filter.id) {
+                where.id = filter.id;
             }
-            const airports = await Airport.findAll();
-            return airports;
+            return await Airport.findAll({ where });
         }catch(error){
             console.log("Something went wrong in Airport repository layer");
             throw error;
@@ -78,6 +63,7 @@ class AirportRepository{
     async updateAirportById(id,data){
         try{
             const airport = await Airport.findByPk(id);
+            if(!airport) throw new AppError("Airport not found", StatusCodes.NOT_FOUND);
             if(data.name)airport.name = data.name;
             if(data.address)airport.address = data.address;
             if(data.cityId)airport.cityId = data.cityId;

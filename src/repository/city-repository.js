@@ -1,5 +1,7 @@
 const {City, Airport} = require('./../models/index.js');
 const { Op, fn, col } = require('sequelize'); //for operations like greater than, less than, like , strartswith etc
+const AppError = require('./../utils/app-error.js')
+const { StatusCodes } = require('http-status-codes');
 
 class cityRepository{
 
@@ -41,26 +43,14 @@ class cityRepository{
 
     async getCityByFilter(filter){
         try{
-            if(filter.name){//find does not exist in sequelize
-                const city = await City.findAll({
-                    where : {
-                        name : {
-                            [Op.startsWith] : filter.name  // for prefix matching , if user enter pray -> prayagraj will come
-                        }
-                    }
-                })
-                return city;
+            const where = {};
+            if (filter.name) {
+                where.name = { [Op.startsWith]: filter.name };
             }
-            if(filter.id){
-                const city = await City.findAll({
-                    where : {
-                        id : filter.id
-                    }
-                })
-                return city;
+            if (filter.id) {
+                where.id = filter.id;
             }
-            const cities = await City.findAll();
-            return cities;
+            return await City.findAll({ where });
         }catch(error){
             console.log("Something went wrong in city repository layer");
             throw error;
@@ -70,7 +60,8 @@ class cityRepository{
     async updateCityById(id,data){
         try{
             const city = await City.findByPk(id);
-            city.name = data.name;
+            if (!city) throw new AppError("City not found for update", StatusCodes.NOT_FOUND);
+            if (data.name) city.name = data.name;
             await city.save();
             return city;
         }catch(error){

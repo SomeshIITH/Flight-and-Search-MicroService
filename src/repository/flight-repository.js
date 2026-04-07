@@ -1,6 +1,8 @@
 const {Flight,Airplane} = require('./../models/index.js')
 const {Op} = require('sequelize'); //for operations like greater than, less than, like , strartswith etc
 const db = require('./../models/index.js')
+const AppError = require('./../utils/app-error.js')
+const { StatusCodes } = require('http-status-codes');
 
 class FlightRepository{
 
@@ -99,7 +101,8 @@ class FlightRepository{
     async updateflightById(id,data){
         try{
             const flight = await Flight.findByPk(id);
-            if(data.flghtNumber)flight.flghtNumber = data.flghtNumber;
+            if(!flight) throw new AppError("Flight not found", StatusCodes.NOT_FOUND);
+            if(data.flightNumber)flight.flightNumber = data.flightNumber;
             if(data.airplaneId)flight.airplaneId = data.airplaneId;
             if(data.departureAirportId)flight.departureAirportId = data.departureAirportId;
             if(data.arrivalAirportId)flight.arrivalAirportId = data.arrivalAirportId;
