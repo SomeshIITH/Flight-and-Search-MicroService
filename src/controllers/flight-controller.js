@@ -9,7 +9,7 @@ const create = async (req,res,next) => {
         return res.status(StatusCodes.CREATED).json({
             data : flight,
             success : true,
-            message : `flight ${flight.name} created successfully`,
+            message : `flight ${flight.flightNumber} created successfully`,
             err : {}
         })
     }catch(error){
